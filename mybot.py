@@ -1,8 +1,8 @@
-import nltk
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
 import random
 import json
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 
 # Sample dataset (intents)
 intents = [
@@ -12,11 +12,12 @@ intents = [
     {"intent": "support", "patterns": ["I need help", "Can you assist me?", "Help me", "I have a problem"], "response": "Sure! Can you please specify your issue?"},
 ]
 
-# Preprocessing function
+# Preprocessing function (without nltk)
 def preprocess(text):
-    tokens = nltk.word_tokenize(text.lower())
-    tokens = [word for word in tokens if word.isalpha() and word not in nltk.corpus.stopwords.words("english")]
-    return " ".join(tokens)
+    text = text.lower()  # Convert text to lowercase
+    text = re.sub(r'\b\w{1,2}\b', '', text)  # Remove short words (1 or 2 letters)
+    text = re.sub(r'[^a-z\s]', '', text)  # Remove non-alphabetical characters
+    return text.strip()
 
 # Prepare the data for training
 train_data = []
