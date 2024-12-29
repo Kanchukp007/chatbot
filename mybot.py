@@ -49,7 +49,7 @@ def generate_response(intent, user_input):
         return next((i["response"] for i in intents if i["intent"] == intent), "I didn't understand that.")
 
 # Streamlit interface
-st.title("Chatbot with Unique Features")
+st.title("ConvoCraft")
 st.write("Type your message below and press Enter to chat with the bot. Type 'exit' to quit.")
 
 user_input = st.text_input("You:", "")
