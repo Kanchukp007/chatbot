@@ -4,9 +4,7 @@ from sklearn.linear_model import LogisticRegression
 import random
 import json
 
-nltk.download('punkt')
-nltk.download('stopwords')  
-
+# Sample dataset (intents)
 intents = [
     {"intent": "greeting", "patterns": ["Hi", "Hello", "Hey", "Good morning", "How are you?"], "response": "Hello! How can I assist you today?"},
     {"intent": "goodbye", "patterns": ["Bye", "Goodbye", "See you", "Take care"], "response": "Goodbye! Have a great day."},
@@ -14,11 +12,13 @@ intents = [
     {"intent": "support", "patterns": ["I need help", "Can you assist me?", "Help me", "I have a problem"], "response": "Sure! Can you please specify your issue?"},
 ]
 
+# Preprocessing function
 def preprocess(text):
     tokens = nltk.word_tokenize(text.lower())
     tokens = [word for word in tokens if word.isalpha() and word not in nltk.corpus.stopwords.words("english")]
     return " ".join(tokens)
 
+# Prepare the data for training
 train_data = []
 train_labels = []
 for intent in intents:
@@ -26,20 +26,25 @@ for intent in intents:
         train_data.append(preprocess(pattern))
         train_labels.append(intent['intent'])
 
+# Train a TF-IDF Vectorizer
 vectorizer = TfidfVectorizer()
 X_train = vectorizer.fit_transform(train_data)
 
+# Train a Logistic Regression Classifier
 classifier = LogisticRegression()
 classifier.fit(X_train, train_labels)
 
+# Function to get the intent from user input
 def predict_intent(user_input):
     processed_input = preprocess(user_input)
     X_input = vectorizer.transform([processed_input])
     intent = classifier.predict(X_input)[0]
     return intent
 
+# Store user preferences (personalization)
 user_data = {}
 
+# Function to personalize user experience
 def personalize(user_id, preference=None):
     if user_id not in user_data:
         user_data[user_id] = {}
@@ -47,12 +52,14 @@ def personalize(user_id, preference=None):
         user_data[user_id].update(preference)
     return user_data[user_id]
 
+# Function to handle user feedback (feedback loop)
 def handle_feedback(feedback, user_id):
     if feedback == "helpful":
         print(f"User {user_id} found the help useful.")
     elif feedback == "unhelpful":
         print(f"User {user_id} found the help unhelpful. Let's improve!")
 
+# Chatbot function to respond to user input
 def chatbot(user_id, user_input):
     # Check if user has preferences
     user_preferences = user_data.get(user_id, {})
