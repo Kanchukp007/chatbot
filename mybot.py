@@ -4,12 +4,12 @@ import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-# Sample dataset (intents)
+# Sample dataset (intents) with fewer patterns for faster testing
 intents = [
-    {"intent": "greeting", "patterns": ["Hi", "Hello", "Hey", "Good morning", "How are you?"], "response": "Hello! How can I assist you today?"},
-    {"intent": "goodbye", "patterns": ["Bye", "Goodbye", "See you", "Take care"], "response": "Goodbye! Have a great day."},
-    {"intent": "reset_password", "patterns": ["How do I reset my password?", "I forgot my password", "Help me with password reset"], "response": "To reset your password, visit our website and click on 'Forgot Password'."},
-    {"intent": "support", "patterns": ["I need help", "Can you assist me?", "Help me", "I have a problem"], "response": "Sure! Can you please specify your issue?"},
+    {"intent": "greeting", "patterns": ["Hi", "Hello", "Hey"], "response": "Hello! How can I assist you today?"},
+    {"intent": "goodbye", "patterns": ["Bye", "Goodbye"], "response": "Goodbye! Have a great day."},
+    {"intent": "reset_password", "patterns": ["How do I reset my password?", "I forgot my password"], "response": "To reset your password, visit our website and click on 'Forgot Password'."},
+    {"intent": "support", "patterns": ["I need help", "Can you assist me?"], "response": "Sure! Can you please specify your issue?"},
 ]
 
 # Preprocessing function (without nltk)
@@ -27,12 +27,12 @@ for intent in intents:
         train_data.append(preprocess(pattern))
         train_labels.append(intent['intent'])
 
-# Train a TF-IDF Vectorizer
-vectorizer = TfidfVectorizer()
+# Train a TF-IDF Vectorizer with optimizations
+vectorizer = TfidfVectorizer(max_features=500, stop_words='english', ngram_range=(1, 1))
 X_train = vectorizer.fit_transform(train_data)
 
-# Train a Logistic Regression Classifier
-classifier = LogisticRegression()
+# Train a Logistic Regression Classifier with solver='liblinear'
+classifier = LogisticRegression(solver='liblinear')
 classifier.fit(X_train, train_labels)
 
 # Function to get the intent from user input
