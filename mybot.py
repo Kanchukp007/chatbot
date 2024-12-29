@@ -5,7 +5,7 @@ import random
 import json
 
 nltk.download('punkt')
-nltk.download('stopwords')
+nltk.download('stopwords')  
 
 intents = [
     {"intent": "greeting", "patterns": ["Hi", "Hello", "Hey", "Good morning", "How are you?"], "response": "Hello! How can I assist you today?"},
