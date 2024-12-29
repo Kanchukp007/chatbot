@@ -1,76 +1,69 @@
 import random
 import re
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.linear_model import LogisticRegression
 
-# Sample dataset (intents)
+# Sample dataset (smaller for faster testing)
 intents = [
-    {"intent": "greeting", "patterns": ["hi", "hello", "hey", "good morning", "how are you?"], "response": "Hello! How can I assist you today?"},
-    {"intent": "goodbye", "patterns": ["bye", "goodbye", "see you", "take care"], "response": "Goodbye! Have a great day."},
-    {"intent": "reset_password", "patterns": ["how do I reset my password?", "I forgot my password", "help me with password reset"], "response": "To reset your password, visit our website and click on 'Forgot Password'."},
-    {"intent": "support", "patterns": ["I need help", "can you assist me?", "help me", "I have a problem"], "response": "Sure! Can you please specify your issue?"},
+    {"intent": "greeting", "patterns": ["Hi", "Hello", "Hey"], "response": "Hello! How can I assist you today?"},
+    {"intent": "goodbye", "patterns": ["Bye", "Goodbye"], "response": "Goodbye! Have a great day."},
+    {"intent": "reset_password", "patterns": ["I forgot my password", "Reset password"], "response": "To reset your password, visit our website and click on 'Forgot Password'."},
+    {"intent": "support", "patterns": ["I need help", "Can you assist me?"], "response": "Sure! Can you please specify your issue?"},
 ]
 
-# Preprocessing function (without nltk)
+# Preprocessing function
 def preprocess(text):
-    # Convert to lowercase and remove non-alphabetical characters
-    text = text.lower()
+    text = text.lower()  # Convert to lowercase
     text = re.sub(r'[^a-z\s]', '', text)  # Remove non-alphabetical characters
     return text.strip()
 
-# Simple function to match the input to the closest intent
-def match_intent(user_input):
+# Prepare the training data
+print("Preparing training data...")
+train_data = []
+train_labels = []
+for intent in intents:
+    for pattern in intent['patterns']:
+        train_data.append(preprocess(pattern))
+        train_labels.append(intent['intent'])
+
+# Display partial output: Training data prepared
+print(f"Training data: {train_data[:3]}")  # Show first 3 training patterns
+print(f"Training labels: {train_labels[:3]}")  # Show first 3 labels
+
+# Use a simple CountVectorizer for faster execution
+print("Vectorizing data...")
+vectorizer = CountVectorizer(max_features=100)
+X_train = vectorizer.fit_transform(train_data)
+
+# Display partial output: Vocabulary
+print(f"Vocabulary: {vectorizer.get_feature_names_out()}")
+
+# Train a Logistic Regression model
+print("Training the model...")
+classifier = LogisticRegression(solver='liblinear')
+classifier.fit(X_train, train_labels)
+
+# Display partial output: Training complete
+print("Model training complete!")
+
+# Function to predict the intent
+def predict_intent(user_input):
     processed_input = preprocess(user_input)
-    
-    for intent in intents:
-        for pattern in intent['patterns']:
-            # Compare user input to each pattern (case insensitive)
-            if re.search(r'\b' + re.escape(processed_input) + r'\b', preprocess(pattern)):
-                return intent['response']
-    
-    return "Sorry, I didn't understand that. Can you please clarify?"
+    X_input = vectorizer.transform([processed_input])
+    intent = classifier.predict(X_input)[0]
+    return intent
 
-# Store user preferences (personalization)
-user_data = {}
-
-# Function to handle user feedback (feedback loop)
-def handle_feedback(feedback, user_id):
-    if feedback == "helpful":
-        print(f"User {user_id} found the help useful.")
-    elif feedback == "unhelpful":
-        print(f"User {user_id} found the help unhelpful. Let's improve!")
-
-# Chatbot function to respond to user input
-def chatbot(user_id, user_input):
-    # Predict intent and get response
-    response = match_intent(user_input)
-    
-    # For feedback system
-    if "helpful" in user_input or "unhelpful" in user_input:
-        feedback = "helpful" if "helpful" in user_input else "unhelpful"
-        handle_feedback(feedback, user_id)
-    
-    return response
-
-# Example conversation
-def start_conversation():
-    user_id = random.randint(1000, 9999)  # Simulating a random user ID
-    print(f"Chatbot initialized. User ID: {user_id}")
-    
+# Chatbot function
+def chatbot():
+    print("Chatbot is ready! Type 'exit' to quit.")
     while True:
         user_input = input("You: ")
         if user_input.lower() == "exit":
-            print("Chatbot: Goodbye! Have a great day.")
+            print("Chatbot: Goodbye!")
             break
-        
-        # Chatbot responds based on intent
-        response = chatbot(user_id, user_input)
+        intent = predict_intent(user_input)
+        response = next((i["response"] for i in intents if i["intent"] == intent), "I didn't understand that.")
         print(f"Chatbot: {response}")
-        
-        # Ask for feedback
-        feedback = input("Was this response helpful? (yes/no): ").lower()
-        if feedback == "yes":
-            print("Chatbot: Thank you for your feedback!")
-        elif feedback == "no":
-            print("Chatbot: Sorry about that. I'll improve based on your feedback.")
 
 if __name__ == "__main__":
-    start_conversation()
+    chatbot()
